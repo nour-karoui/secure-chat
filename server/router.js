@@ -121,6 +121,7 @@ module.exports = function(app) {
                         attributes: ['sn', 'cn']
                     };
                     let i = 0;
+                    // search if there is a user with the same card num or username
                     client.search('ou=users,ou=system', opts, (err, res) => {
                         if(err) {
                             console.log("==========================")
@@ -143,6 +144,7 @@ module.exports = function(app) {
                         });
                         res.on('end', (result) => {
                             console.log('status: ' + result.status);
+                            // if the user exists return 403 response
                             if(i !== 0) {
                                 response.status(403).send({ error: "a user with the same credentials already exists"})
                             }
@@ -156,6 +158,7 @@ module.exports = function(app) {
                         userPassword: password,
                         objectClass: 'inetOrgPerson'
                     }
+                    // add user
                     client.add(`cn=${username},ou=users,ou=system`, entry, function (err) {
                         if(err) {
                             console.log("err in new user", err);
@@ -193,6 +196,7 @@ module.exports = function(app) {
                     };
                     let i = 0;
                     let sn = '';
+                    // search if there is a user with the same username
                     client.search('ou=users,ou=system', opts, (err, res) => {
                         if(err) {
                             console.log("==========================")
@@ -217,12 +221,14 @@ module.exports = function(app) {
                         res.on('end', (result) => {
                             console.log('status: ' + result.status);
                             if(i === 0) {
+                                // return invalid credentials if username doesn't exist
                                 return response.status(401).send({ error: "LOGIN FAILED"})
                             } else {
                                 console.log("======================== LOGIN PART ============================")
                                 auth(username, password).then(() => {
                                     console.log('success login');
                                     console.log("======================== LOGIN PART ============================")
+                                    // generate token if everything is okay
                                     return response.status(200).json({
                                         token: 'JWT ' + generateToken({username: username}),
                                         user: {username: username}
@@ -230,6 +236,7 @@ module.exports = function(app) {
                                 }).catch(err => {
                                     console.log('this happened')
                                     i=0;
+                                    //return invalid credentials if password is incorrect
                                     return response.status(401).send({ error: "LOGIN FAILED"})
                                 });
                             }
