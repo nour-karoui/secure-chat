@@ -3,12 +3,22 @@
   <component name="issues">
     <option name="index">
       <map>
+        <entry key="$PROJECT_DIR$/.gitignore">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/node_modules/.bin/react-scripts">
           <value>
             <set />
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/package.json">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/config/ldap.js">
           <value>
             <set />
           </value>
@@ -24,6 +34,26 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/server/controllers/chat.js">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/data/slapd/config/cn=config.ldif">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/data/slapd/config/cn=config/olcDatabase={0}config.ldif">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/data/slapd/config/docker-openldap-was-started-with-tls">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/docker-compose.yaml">
           <value>
             <set />
           </value>

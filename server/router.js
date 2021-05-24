@@ -9,11 +9,91 @@ const AuthenticationController = require('./controllers/authentication'),
 const requireAuth = passport.authenticate('jwt', { session: false });
 const requireLogin = passport.authenticate('local', { session: false });
 
+const ldap = require('ldapjs');
+
+const client = ldap.createClient({
+    url: ['ldap://127.0.0.1:10389'],
+    reconnect: true,
+    idleTimeout: 259200000
+});
+
+client.on('connect', (data) => {
+    console.log('success');
+
+});
+
+client.on('error', (err) => {
+      // handle connection error
+    console.log('errrooooorrrr')
+      console.log(err)
+})
+
+client.on('destroy', (err) => {
+    console.log('disconnect')
+    console.log(err)
+})
+
+client.bind('uid=admin,ou=system', 'secret', (err) => {
+    if(err) {
+        console.log("==========================")
+        console.log('Binding Error')
+        console.log(err)
+        console.log("==========================")
+    } else {
+        console.log("==========================")
+        console.log("binding went great")
+        console.log("==========================")
+        // const opts = {
+        //     filter: '|(uid=1)(sn=karoui)',
+        //     scope: 'sub',
+        //     attributes: ['sn', 'cn']
+        // };
+        //
+        // client.search('ou=users,ou=system', opts, (err, res) => {
+        //     if(err) {
+        //         console.log("==========================")
+        //         console.log('Search Error')
+        //         console.log(err)
+        //         console.log("==========================")
+        //     }
+        //
+        //     res.on('searchEntry', (entry) => {
+        //         console.log('entry: ' + JSON.stringify(entry.object));
+        //     });
+        //     res.on('searchReference', (referral) => {
+        //         console.log('referral: ' + referral.uris.join());
+        //     });
+        //     res.on('error', (err) => {
+        //         console.error('error: ' + err.message);
+        //     });
+        //     res.on('end', (result) => {
+        //         console.log('status: ' + result.status);
+        //     });
+        // });
+        const entry = {
+            sn: 'bari',
+            objectClass: 'inetOrgPerson'
+        }
+        client.add('cn=bari,ou=users,ou=system', entry, function (err) {
+           if(err) {
+               console.log("err in new user", err);
+           } else {
+               console.log("added user");
+           }
+        })
+    }
+});
+
 module.exports = function(app) {
   const apiRoutes = express.Router(),
         authRoutes = express.Router(),
         chatRoutes = express.Router(),
         userRoutes = express.Router();
+
+      // test routes
+      apiRoutes.post('/test', (req, res, next) => {
+            console.log('i got heere')
+      });
 
         // Auth Routes
         apiRoutes.use('/auth', authRoutes);
