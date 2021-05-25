@@ -25,7 +25,6 @@ class ChatUIContainer extends Component {
 
     this.state = {
       username: "",
-      id: "",
       loginError: [],
       registrationError: [],
       formsShown: false,
@@ -224,10 +223,10 @@ class ChatUIContainer extends Component {
 
   // Takes a username and password, then makes a POST call to our api which returns a token and that user's info
   // Then sets cookies of the given token, user data, and users channels
-  userRegistration = ({ username, password }) => {
+  userRegistration = ({ username, password, email, card, name, lastName }) => {
     const { cookies } = this.props;
     const currentChannel = this.state.currentChannel;
-    axios.post(`${API_URL}/auth/register`, { username, password })
+    axios.post(`${API_URL}/auth/register`, { username, password, email, card, name, lastName })
     .then(res => {
       console.log('register successful')
       cookies.set('token', res.data.token, { path: "/", maxAge: 7200 })
@@ -620,7 +619,7 @@ class ChatUIContainer extends Component {
               : null
           }
         {
-          (this.state.id || this.state.guestUsername)
+          (this.state.username || this.state.guestUsername)
             ? <ChatBox 
                 handleChange={this.handleChange}
                 handleSubmit={this.handleSubmit}

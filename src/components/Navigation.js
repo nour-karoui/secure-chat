@@ -20,7 +20,7 @@ const Navigation = (props) => {
                 : null
             }
             {
-              (id)
+              (username)
                 ? <button onClick={userLogout}>Logout</button>
                 : <div>
                   <button onClick={() => {displayForms("login")}}>Login</button>

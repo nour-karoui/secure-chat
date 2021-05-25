@@ -20,12 +20,12 @@ export default class ChatBox extends Component {
   }
 
   render() {  
-    const { id, getUsersConversations, hasToken } = this.props;
+    const { username, getUsersConversations, hasToken } = this.props;
   
     return (
         <div className="chatapp__mainchat--container">
           {
-            (id)
+            (username)
             ? <ChatLists 
                 getUsersConversation={getUsersConversations}
                 hasToken={hasToken}

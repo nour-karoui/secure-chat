@@ -174,7 +174,7 @@ exports.getChannelConversations = function(req, res, next) {
 // Returns all the different conversations where the participant is the user.
 exports.getConversations = function (req, res, next) {
   const username = req.user.username;
-
+  console.log('heerrre');
   // Show recent message from each conversation
   Conversation.find({ participants: req.user._id })
     .sort('_id')

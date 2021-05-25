@@ -5,10 +5,8 @@ const express = require('express'),
       UserController = require('./controllers/user'),
       jwt = require('jsonwebtoken'),
       { authenticate } = require('ldap-authentication');
-
 // Middleware for login/auth
 const requireAuth = passport.authenticate('jwt', { session: false });
-const requireLogin = passport.authenticate('local', { session: false });
 
 const ldap = require('ldapjs');
 
@@ -20,7 +18,6 @@ const client = ldap.createClient({
 
 client.on('connect', (err) => {
     console.log('success');
-
 });
 
 client.on('error', (err) => {
@@ -112,7 +109,7 @@ module.exports = function(app) {
                     console.log("==========================")
                     console.log("binding went great")
                     console.log("==========================")
-
+                    console.log(req.body);
                     const { card, name, lastName, username, password, email } = req.body;
 
                     const opts = {

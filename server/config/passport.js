@@ -1,41 +1,18 @@
 const passport = require('passport'),
-      User = require('../models/user'),
-      Guest = require('../models/guest'),
       config = require('./main'),
       JwtStrategy = require('passport-jwt').Strategy,
-      ExtractJwt = require('passport-jwt').ExtractJwt,
-      LocalStrategy = require('passport-local');
+      ExtractJwt = require('passport-jwt').ExtractJwt;
 
-const localOptions = {
-  usernameField: 'username'
-};
+const ldap = require('ldapjs');
 
-//Setting up local login strategy
-const localLogin = new LocalStrategy(localOptions, function(username, password, done) {
-  User.findOne({ username }, function(err, user) {
-    if (err) { 
-      return done(err); 
-    }
-    if (!user) {
-      return done(null, false, {
-        error: 'Your login details could not be verified. Please try again.'
-      });
-    }
+const client = ldap.createClient({
+  url: ['ldap://127.0.0.1:10389'],
+  reconnect: true,
+  idleTimeout: 259200000
+});
 
-    user.comparePassword(password, function(err, isMatch) {
-      if (err) {
-        return done(err);
-      }
-      
-      if (!isMatch) {
-        return done(null, false, {
-          error: 'Your login details could not be verified. Please try again.'
-        });
-      }
-      
-      return done(null, user);
-    });
-  });
+client.on('connect', (err) => {
+  console.log('success');
 });
 
 const jwtOptions = {
@@ -48,29 +25,56 @@ const jwtOptions = {
 // JWT login strategy setup
 const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
   console.log(payload);
-  User.findById(payload._id, function(err, user) {
-    if (err) {
-      return done(err, false);
-    }
-
-    if (user) {
-      done(null, user);
+  console.log('heeeeerreee');
+  client.bind('uid=admin,ou=system', 'secret', (err) => {
+    if(err) {
+      console.log("==========================")
+      console.log('Binding Error')
+      console.log(err)
+      console.log("==========================")
     } else {
-      // Reads guest token for api calls
-      Guest.findOne(payload.guestName, function(err, guest) {
-        if (err) {
-          return done(err, false);
+      console.log("==========================")
+      console.log("binding went great")
+      console.log("==========================")
+      const opts = {
+        filter: `(sn=${payload.username})`,
+        scope: 'sub',
+        attributes: ['sn', 'cn']
+      };
+      let user = null;
+
+      client.search('ou=users,ou=system', opts, (err, res) => {
+        if(err) {
+          console.log("==========================")
+          console.log('Search Error')
+          console.log(err)
+          console.log("==========================")
         }
 
-        if (guest) {
-          done(null, guest)
-        } else {
-          done(null, false);
-        }
+        res.on('searchEntry', (entry) => {
+          console.log('entry: ' + JSON.stringify(entry.object));
+          if (JSON.stringify(entry.object) !== '') {
+            user = entry.object;
+          }
+        });
+        res.on('searchReference', (referral) => {
+          console.log('referral: ' + referral.uris.join());
+        });
+        res.on('error', (err) => {
+          console.error('error: ' + err.message);
+          return done(err, false);
+        });
+        res.on('end', (result) => {
+          console.log('status: ' + result.status);
+          if (user) {
+            done(null, user);
+          }else {
+            done(null, false);
+          }
+        });
       });
     }
   });
 });
 
 passport.use(jwtLogin);
-passport.use(localLogin);

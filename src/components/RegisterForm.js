@@ -9,6 +9,10 @@ export default class RegisterForm extends Component {
     this.state = {
       username: "",
       password: "",
+      name: "",
+      lastName: "",
+      card: "",
+      email: ""
     }
   }
 
@@ -21,8 +25,9 @@ export default class RegisterForm extends Component {
   handleSubmit = (e) => {
     e.preventDefault();
 
-    const { username, password } = this.state;
-    this.props.userRegistration({ username, password });
+    const { username, password, email, card, name, lastName } = this.state;
+    console.log(this.state);
+    this.props.userRegistration({ username, password, email, card, name, lastName });
   }
 
   render() {
@@ -32,14 +37,18 @@ export default class RegisterForm extends Component {
           <form onSubmit={this.handleSubmit}>
             <input onChange={this.handleChange} name="username" type="text" label="Username" placeholder="&#xf2c0; Enter a Username"/>
             <input onChange={this.handleChange} name="password" type="password" label="Password" placeholder="&#xf13e; Enter a password"/>
-            {/*{*/}
-            {/*  (this.props.registrationError.length)*/}
-            {/*    ? <Alert */}
-            {/*        header="Something went wrong"*/}
-            {/*        content={`${this.props.registrationError[this.props.registrationError.length - 1].response.data.error}`}*/}
-            {/*      />*/}
-            {/*    : null*/}
-            {/*}*/}
+            <input onChange={this.handleChange} name="email" type="email" label="Email" placeholder="Enter your email"/>
+            <input onChange={this.handleChange} name="card" type="card" label="Card" placeholder="Enter your card number"/>
+            <input onChange={this.handleChange} name="name" type="name" label="Password" placeholder="Enter your name"/>
+            <input onChange={this.handleChange} name="lastName" type="lastName" label="Last Name" placeholder="Enter your last name"/>
+            {
+              (this.props.registrationError.length)
+                ? <Alert
+                    header="Something went wrong"
+                    content={`${this.props.registrationError[this.props.registrationError.length - 1].response.data.error}`}
+                  />
+                : null
+            }
             <button>Register</button>
           </form>
         </div>
