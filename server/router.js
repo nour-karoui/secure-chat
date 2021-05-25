@@ -1,7 +1,8 @@
 const express = require('express'),
       passportService = require('./config/passport'),
       passport = require('passport'),
-      ChatController = require('./controllers/chat'),
+    User = require('./models/user'),
+    ChatController = require('./controllers/chat'),
       UserController = require('./controllers/user'),
       jwt = require('jsonwebtoken'),
       { authenticate } = require('ldap-authentication');
@@ -159,15 +160,32 @@ module.exports = function(app) {
                     client.add(`cn=${username},ou=users,ou=system`, entry, function (err) {
                         if(err) {
                             console.log("err in new user", err);
+                            response.status(401).json({
+                                error: 'error in adding user'
+                            })
                         } else {
                             console.log("added user");
+                            let user = new User({
+                                username: username,
+                                password: password,
+                            });
+
+                            user.save(function(err, user) {
+                                if (err) {
+                                    console.log("err in new user", err);
+                                    response.status(401).json({
+                                        error: 'error in adding user'
+                                    })
+                                }
+                            });
+                            // generate jwt
+                            response.status(200).json({
+                                token: 'JWT ' + generateToken({username: username}),
+                                user: {username: username}
+                            })
                         }
                     });
-                    // generate jwt
-                    response.status(200).json({
-                        token: 'JWT ' + generateToken({username: username}),
-                        user: {username: username}
-                    })
+
                 }
             });
         });

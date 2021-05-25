@@ -46,15 +46,17 @@ export default class PrivateMessagingContainer extends Component {
       headers: { Authorization: this.props.token }
     })
     .then(res => {
+      console.log(res);
       const socketMsg = {
         body: privateMessageInput,
-        conversationId: this.state.conversationId,
+        conversationId: res.data.reply.conversationId,
         author:[{
           item:{
             username: this.props.username
           }
         }]
       }
+      console.log(socketMsg);
       socket.emit('new privateMessage', socketMsg);
 
       this.setState({

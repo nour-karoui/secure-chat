@@ -8,8 +8,7 @@ const Conversation = require('../models/conversation'),
 // Creates a conversation link between user and recipient for private messaging
 exports.newConversation = function(req, res, next) {
   const recipient = req.body.startDmInput;
-  const userId = req.user._id
-  console.log(recipient);
+  console.log(recipient); // username of recipient
   if (!recipient) {
     res.status(422).send({
       error: "Enter a valid recipient."
@@ -19,7 +18,7 @@ exports.newConversation = function(req, res, next) {
 
   // Looks for a username with recipient name then creates a new Conversation schema with both user and 
   // recipient in the participants array in the conversation model.
-  User.findOne({ username: recipient }, function(err, foundRecipient) {
+  User.find({ username: {$in: [recipient, req.user.sn]} }, function(err, foundRecipient) {
     if (err) {
       res.send({
         error: err
@@ -32,10 +31,9 @@ exports.newConversation = function(req, res, next) {
         error: 'Could not find recipient.'
       });
     }
-
     // Adds both user id and recipient id to a participants array
     const conversation = new Conversation({
-      participants: [ req.user._id , foundRecipient._id ]
+      participants: [ foundRecipient[0]._id , foundRecipient[1]._id ]
     })
 
     conversation.save(function(err, newConversation) {
@@ -45,11 +43,13 @@ exports.newConversation = function(req, res, next) {
         });
         return next(err);
       }
-
+      const receiver = foundRecipient[0].username === recipient ? foundRecipient[0]: foundRecipient[1];
+      console.log('here is the receiver')
+      console.log(receiver)
       res.status(200).json({
-        message: `Started conversation with ${foundRecipient.username}`,
-        recipientId: foundRecipient._id,
-        recipient: foundRecipient.username,
+        message: `Started conversation with ${receiver.username}`,
+        recipientId: receiver._id,
+        recipient: receiver.username,
       })
 
     });
@@ -172,11 +172,11 @@ exports.getChannelConversations = function(req, res, next) {
 // Gets a over log of active conversations the user is in.
 // Looks up the all the places where the participants is the user in conversation model
 // Returns all the different conversations where the participant is the user.
-exports.getConversations = function (req, res, next) {
-  const username = req.user.username;
-  console.log('heerrre');
+exports.getConversations = async function (req, res, next) {
+  const username = req.user.sn;
+  const user = await User.findOne({username: username});
   // Show recent message from each conversation
-  Conversation.find({ participants: req.user._id })
+  Conversation.find({ participants: user._id })
     .sort('_id')
     .populate({
       path: 'participants',
@@ -213,19 +213,20 @@ exports.getConversations = function (req, res, next) {
 // Takes a message, recipient id, and user id
 // Looks at all conversations where the recipient id and user id match in the participants array then gets that id
 // Using the conversation id, a reply is made with a new message with the same conversation Id
-exports.sendReply = function(req, res, next) {
+exports.sendReply = async function(req, res, next) {
   const privateMessage = req.body.privateMessageInput;
   const recipientId = req.body.recipientId;
-  const userId = req.user._id;
+  const username = req.user.sn;
+  const user = await User.findOne({username: username});
+  console.log('sending message');
 
-  Conversation.findOne({ participants: {$all: [ userId, recipientId]} }, function(err, foundConversation) {
+  Conversation.findOne({ participants: {$all: [ user._id, recipientId]} }, function(err, foundConversation) {
     if (err) {
       res.send({
         errror: err
       });
       return next(err);
     }
-
     if (!foundConversation) {
       return res.status(200).json({
         message: 'Could not find conversation'
@@ -237,7 +238,7 @@ exports.sendReply = function(req, res, next) {
       body: privateMessage,
       author: {
         kind: 'User',
-        item: req.user._id
+        item: user._id
       }
     })
 
@@ -250,6 +251,7 @@ exports.sendReply = function(req, res, next) {
     }
 
     res.status(200).json({
+      reply: reply,
       message: 'Reply sent.'
     });
     return next();
@@ -260,11 +262,12 @@ exports.sendReply = function(req, res, next) {
 // Gets a user id and recipient Id
 // Looks at all the conversations where the participants are the user id and recipient - this returns the conversation id if found
 // Using that conversation id, it looks through the messages for that conversation Id and returns all the messages for that conersation
-exports.getPrivateMessages = function(req, res, next) {
-  const userId = req.user._id;
+exports.getPrivateMessages =  async function(req, res, next) {
+  const username = req.user.sn;
+  const user = await User.findOne({username: username});
   const recipientId = req.params.recipientId;
 
-  Conversation.findOne({ participants: {$all: [ userId, recipientId]}}, function(err, foundConversation) {
+  Conversation.findOne({ participants: {$all: [ user._id, recipientId]}}, function(err, foundConversation) {
     if (err) {
       res.send({
         error: err

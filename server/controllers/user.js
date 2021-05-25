@@ -1,51 +1,112 @@
 "use strict"
 
 const User = require('../models/user');
+const ldap = require('ldapjs');
+
+const client = ldap.createClient({
+  url: ['ldap://127.0.0.1:10389'],
+  reconnect: true,
+  idleTimeout: 259200000
+});
+
+client.on('connect', (err) => {
+  console.log('success');
+});
 
 // Takes a channel name and the current username
 // If a user is found, that channel is pushed into the user's userChannel array
-exports.addChannel = function(req, res, next) {
-
+exports.addChannel = function(req, response, next) {
   const channelToAdd = req.body.createInput;
-  const username = req.user.username;
+  const username = req.body.user.username;
+  client.bind('uid=admin,ou=system', 'secret', (err) => {
+    if(err) {
+      // console.log("==========================")
+      // console.log('Binding Error')
+      // console.log(err)
+      // console.log("==========================")
+    } else {
+      // console.log("==========================")
+      // console.log("binding went great")
+      // console.log("==========================")
+      const opts = {
+        filter: `(sn=${username})`,
+        scope: 'sub',
+        attributes: ['sn', 'cn']
+      };
+      let user = null;
 
-  User.findOne({ username }, function(err, user) {
-    if (err) {
-      res.send({
-        error: err
+      client.search('ou=users,ou=system', opts, (err, res) => {
+        if(err) {
+          // console.log("==========================")
+          // console.log('Search Error')
+          // console.log(err)
+          // console.log("==========================")
+        }
+
+        res.on('searchEntry', (entry) => {
+          if (JSON.stringify(entry.object) !== '') {
+            user = entry.object;
+          }
+        });
+        res.on('searchReference', (referral) => {
+          console.log('referral: ' + referral.uris.join());
+        });
+        res.on('error', (err) => {
+          console.error('error: ' + err.message);
+          return done(err, false);
+        });
+        res.on('end', (result) => {
+          if (user) {
+              response.status(200).json({
+                message: 'Successfully joined channel.',
+              });
+          }else {
+            response.status(404).json({
+              message: 'Channel not found',
+            });}
+
+        });
       });
-      return next(err);
     }
-    
-    if (!user) {
-      return res.status(422).json({
-        error: 'Could not find user.'
-      })
-    }
-   
-   // This prevents the user from joining duplicate channels
-   if (user.usersChannels.indexOf(channelToAdd) == -1 ) {
-    user.usersChannels.push(channelToAdd);
-   } else {
-     return res.status(422).json({
-       error: 'Already joined that channel.'
-     })
-   }
-
-   user.save(function(err, updatedUser) {
-    if (err) {
-      res.send({
-        error: err
-      });
-      return next(err);
-    }
-
-    res.status(200).json({
-      message: 'Successfully joined channel.',
-      channels: user.usersChannels
-    });
-   });
   });
+
+  // User.findOne({ username }, function(err, user) {
+  //   if (err) {
+  //     res.send({
+  //       error: err
+  //     });
+  //     return next(err);
+  //   }
+  //
+  //   if (!user) {
+  //     return res.status(422).json({
+  //       error: 'Could not find user.'
+  //     })
+  //   }
+  //
+  //  // This prevents the user from joining duplicate channels
+  //  if (user.usersChannels.indexOf(channelToAdd) == -1 ) {
+  //   user.usersChannels.push(channelToAdd);
+  //  } else {
+  //    return res.status(422).json({
+  //      error: 'Already joined that channel.'
+  //    })
+  //  }
+  //
+  //  user.save(function(err, updatedUser) {
+  //   if (err) {
+  //     res.send({
+  //       error: err
+  //     });
+  //     return next(err);
+  //   }
+  //
+  //   res.status(200).json({
+  //     message: 'Successfully joined channel.',
+  //     channels: user.usersChannels
+  //   });
+  //  });
+  // });
 }
 
 // Takes a channel name and username

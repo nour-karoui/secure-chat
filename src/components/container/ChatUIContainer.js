@@ -459,6 +459,7 @@ class ChatUIContainer extends Component {
         headers: { Authorization: this.state.token }
       })
       .then(res => {
+        console.log(res);
         const newUsersDirectMessages = Array.from(this.state.usersDirectMessages)
         
         newUsersDirectMessages.push({
