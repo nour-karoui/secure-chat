@@ -1,11 +1,14 @@
 const express = require('express'),
       passportService = require('./config/passport'),
       passport = require('passport'),
-    User = require('./models/user'),
-    ChatController = require('./controllers/chat'),
+      User = require('./models/user'),
+      ChatController = require('./controllers/chat'),
       UserController = require('./controllers/user'),
       jwt = require('jsonwebtoken'),
+      openssl = require('openssl-nodejs'),
+      fs = require('fs'),
       { authenticate } = require('ldap-authentication');
+
 // Middleware for login/auth
 const requireAuth = passport.authenticate('jwt', { session: false });
 
@@ -100,7 +103,7 @@ module.exports = function(app) {
 
         // Registration Route
         authRoutes.post('/register', (req, response, next) => {
-            client.bind('uid=admin,ou=system', 'secret', (err) => {
+            client.bind('uid=admin,ou=system', 'secret', async (err) => {
                 if(err) {
                     console.log("==========================")
                     console.log('Binding Error')
@@ -111,8 +114,7 @@ module.exports = function(app) {
                     console.log("binding went great")
                     console.log("==========================")
                     console.log(req.body);
-                    const { card, name, lastName, username, password, email } = req.body;
-
+                    const { card, name, lastName, username, password, email, csr } = req.body;
                     const opts = {
                         filter: `|(employeeNumber=${card})(sn=${username})`,
                         scope: 'sub',
@@ -120,7 +122,7 @@ module.exports = function(app) {
                     };
                     let i = 0;
                     // search if there is a user with the same card num or username
-                    client.search('ou=users,ou=system', opts, (err, res) => {
+                    client.search('ou=users,ou=system', opts, async (err, res) => {
                         if(err) {
                             console.log("==========================")
                             console.log('Search Error')
@@ -149,43 +151,62 @@ module.exports = function(app) {
                         });
                     });
 
-                    const entry = {
-                        sn: username,
-                        employeeNumber: card,
-                        mail: email,
-                        userPassword: password,
-                        objectClass: 'inetOrgPerson'
-                    }
-                    // add user
-                    client.add(`cn=${username},ou=users,ou=system`, entry, function (err) {
+                    await fs.writeFile("openssl/client/csr", csr, function(err) {
                         if(err) {
-                            console.log("err in new user", err);
-                            response.status(401).json({
-                                error: 'error in adding user'
-                            })
-                        } else {
-                            console.log("added user");
-                            let user = new User({
-                                username: username,
-                                password: password,
-                            });
-
-                            user.save(function(err, user) {
-                                if (err) {
-                                    console.log("err in new user", err);
-                                    response.status(401).json({
-                                        error: 'error in adding user'
-                                    })
-                                }
-                            });
-                            // generate jwt
-                            response.status(200).json({
-                                token: 'JWT ' + generateToken({username: username}),
-                                user: {username: username}
-                            })
+                            return console.log(err);
                         }
+                        console.log("The file was saved!");
                     });
 
+                    await openssl(
+                        ['x509', '-req', '-in', 'client/csr', '-out', 'client/cert', '-CA', 'openssl/CA/myCA.crt', '-CAkey', 'openssl/CA/myCA.key', '-CAcreateserial', '-CAserial', 'openssl/client.srl','-days','825']
+                        , function (err, buffer) {
+                            console.log(err.toString(), buffer.toString());
+                            fs.readFile('openssl/client/cert', 'utf8', function(err, data){
+                                // Display the file content
+                                console.log(data);
+                                const certificate = data;
+                                const entry = {
+                                    sn: username,
+                                    employeeNumber: card,
+                                    mail: email,
+                                    userPassword: password,
+                                    description: data,
+                                    objectClass: 'inetOrgPerson'
+                                }
+                                // add user
+                                client.add(`cn=${username},ou=users,ou=system`, entry, function (err) {
+                                    if(err) {
+                                        console.log("err in new user", err);
+                                        response.status(401).json({
+                                            error: 'error in adding user'
+                                        })
+                                    } else {
+                                        console.log("added user");
+                                        let user = new User({
+                                            username: username,
+                                            password: password,
+                                        });
+
+                                        user.save(function(err, user) {
+                                            if (err) {
+                                                console.log("err in new user", err);
+                                                response.status(401).json({
+                                                    error: 'error in adding user'
+                                                })
+                                            }
+                                            // generate jwt
+                                            response.status(200).json({
+                                                token: 'JWT ' + generateToken({username: username}),
+                                                user: {username: username},
+                                                certificate: certificate
+                                            })
+                                        });
+                                    }
+                                });
+
+                            });
+                        });
                 }
             });
         });
@@ -207,10 +228,11 @@ module.exports = function(app) {
                     const opts = {
                         filter: `(sn=${username})`,
                         scope: 'sub',
-                        attributes: ['sn', 'cn']
+                        attributes: ['sn', 'cn', 'description']
                     };
                     let i = 0;
                     let sn = '';
+                    let certificate = '';
                     // search if there is a user with the same username
                     client.search('ou=users,ou=system', opts, (err, res) => {
                         if(err) {
@@ -223,6 +245,7 @@ module.exports = function(app) {
                         res.on('searchEntry', (entry) => {
                             console.log('entry: ' + JSON.stringify(entry.object));
                             if (JSON.stringify(entry.object) !== '') {
+                                certificate = entry.object.description;
                                 sn = entry.object.sn;
                                 i++;
                             }
@@ -233,26 +256,39 @@ module.exports = function(app) {
                         res.on('error', (err) => {
                             console.error('error: ' + err.message);
                         });
-                        res.on('end', (result) => {
+                        res.on('end', async (result) => {
                             console.log('status: ' + result.status);
                             if(i === 0) {
                                 // return invalid credentials if username doesn't exist
                                 return response.status(401).send({ error: "LOGIN FAILED"})
                             } else {
                                 console.log("======================== LOGIN PART ============================")
-                                auth(username, password).then(() => {
-                                    console.log('success login');
-                                    console.log("======================== LOGIN PART ============================")
-                                    // generate token if everything is okay
-                                    return response.status(200).json({
-                                        token: 'JWT ' + generateToken({username: username}),
-                                        user: {username: username}
+                                // verif certif
+                                await fs.writeFile("openssl/client/certif", certificate, function(err) {
+                                    if(err) {
+                                        return console.log(err);
+                                    }
+                                    console.log("The file was saved!");
+                                });
+                                openssl(['verify', '-CAfile', './openssl/CA/myCA.crt', './openssl/client/certif'], function (err, buffer) {
+                                    if(err.toString() !== '') {
+                                        return response.status(401).send({ error: "LOGIN FAILED"})
+                                    }
+                                    auth(username, password).then(() => {
+                                        console.log('success login');
+                                        console.log("======================== LOGIN PART ============================")
+                                        // generate token if everything is okay
+                                        return response.status(200).json({
+                                            token: 'JWT ' + generateToken({username: username}),
+                                            user: {username: username},
+                                            certificate: certificate
+                                        });
+                                    }).catch(err => {
+                                        console.log('this happened')
+                                        i=0;
+                                        //return invalid credentials if password is incorrect
+                                        return response.status(401).send({ error: "LOGIN FAILED"})
                                     });
-                                }).catch(err => {
-                                    console.log('this happened')
-                                    i=0;
-                                    //return invalid credentials if password is incorrect
-                                    return response.status(401).send({ error: "LOGIN FAILED"})
                                 });
                             }
                         });
@@ -260,6 +296,68 @@ module.exports = function(app) {
                 }
             });
         });
+
+        // get user certificate
+        authRoutes.get('/certif/:username', (req, response, next) => {
+            client.bind('uid=admin,ou=system', 'secret', (err) => {
+                if(err) {
+                    console.log("==========================")
+                    console.log('Binding Error')
+                    console.log(err)
+                    console.log("==========================")
+                } else {
+                    console.log("==========================")
+                    console.log("binding went great")
+                    console.log("==========================")
+
+                    const username = req.params.username;
+                    console.log(username);
+                    const opts = {
+                        filter: `(sn=${username})`,
+                        scope: 'sub',
+                        attributes: ['sn', 'cn', 'description']
+                    };
+                    let i = 0;
+                    let sn = '';
+                    let certificate = '';
+                    // search if there is a user with the same username and return certificate
+                    client.search('ou=users,ou=system', opts, (err, res) => {
+                        if(err) {
+                            console.log("==========================")
+                            console.log('Search Error')
+                            console.log(err)
+                            console.log("==========================")
+                        }
+
+                        res.on('searchEntry', (entry) => {
+                            console.log('entry: ' + JSON.stringify(entry.object));
+                            if (JSON.stringify(entry.object) !== '') {
+                                certificate = entry.object.description;
+                                sn = entry.object.sn;
+                                i++;
+                            }
+                        });
+                        res.on('searchReference', (referral) => {
+                            console.log('referral: ' + referral.uris.join());
+                        });
+                        res.on('error', (err) => {
+                            console.error('error: ' + err.message);
+                        });
+                        res.on('end', async (result) => {
+                            console.log('status: ' + result.status);
+                            if(i === 0) {
+                                // return invalid credentials if username doesn't exist
+                                return response.status(401).send({ error: "GETTING CERTIF FAILED"})
+                            } else {
+                                return response.status(200).json({
+                                    certificate: certificate
+                                });
+                            }
+                        });
+                    })
+                }
+            });
+        })
 
         // Chat Routes
         apiRoutes.use('/chat', chatRoutes);

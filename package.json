@@ -4,7 +4,10 @@
   "private": true,
   "dependencies": {
     "axios": "^0.17.0",
+    "child_process": "^1.0.2",
+    "hybrid-crypto-js": "^0.2.4",
     "moment": "^2.19.1",
+    "node-forge": "^0.10.0",
     "prop-types": "^15.6.0",
     "react": "^16.0.0",
     "react-cookie": "^2.1.1",

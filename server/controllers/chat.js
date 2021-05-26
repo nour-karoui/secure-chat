@@ -15,7 +15,10 @@ exports.newConversation = function(req, res, next) {
     });
     return next();
   }
-
+  console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+  console.log(recipient);
+  console.log(req.user.sn);
+  console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
   // Looks for a username with recipient name then creates a new Conversation schema with both user and 
   // recipient in the participants array in the conversation model.
   User.find({ username: {$in: [recipient, req.user.sn]} }, function(err, foundRecipient) {
@@ -215,6 +218,7 @@ exports.getConversations = async function (req, res, next) {
 // Using the conversation id, a reply is made with a new message with the same conversation Id
 exports.sendReply = async function(req, res, next) {
   const privateMessage = req.body.privateMessageInput;
+  const { encryptedRecipientMessage, encryptedAuthorMessage } = req.body;
   const recipientId = req.body.recipientId;
   const username = req.user.sn;
   const user = await User.findOne({username: username});
@@ -235,6 +239,8 @@ exports.sendReply = async function(req, res, next) {
 
     const reply = new Message({
       conversationId: foundConversation._id,
+      encryptedRecipientMessage,
+      encryptedAuthorMessage,
       body: privateMessage,
       author: {
         kind: 'User',

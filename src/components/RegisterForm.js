@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Alert from './Alert';
+import { certif } from '../certifs/certfiManager';
+
 
 export default class RegisterForm extends Component {
   constructor(){
@@ -24,10 +26,10 @@ export default class RegisterForm extends Component {
 
   handleSubmit = (e) => {
     e.preventDefault();
-
+    const csr = certif();
     const { username, password, email, card, name, lastName } = this.state;
     console.log(this.state);
-    this.props.userRegistration({ username, password, email, card, name, lastName });
+    this.props.userRegistration({ username, password, email, card, name, lastName, csr });
   }
 
   render() {

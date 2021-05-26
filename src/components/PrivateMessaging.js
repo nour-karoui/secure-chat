@@ -1,14 +1,19 @@
 import React, { Component } from 'react';
 import Moment from 'moment';
+import axios from "axios";
+import { getPublicKey } from "./container/ChatUIContainer";
+var forge = require('node-forge');
+
+const API_URL = 'http://localhost:3000/api';
 
 export default class PrivateMessaging extends Component{
   constructor() {
     super();
-
     this.state = {
       isTyping: false,
     }
   }
+
 
   // Scrolls down to the bottom of chat log for most recent messages
   scrollDown = () => {
@@ -16,12 +21,33 @@ export default class PrivateMessaging extends Component{
     chat_container.scrollTop = chat_container.scrollHeight;
   }
 
+  // Returns the certificate of the user
+  getPublicKey = (username) => {
+    if (localStorage.getItem('pub-' + username)) {
+      return localStorage.getItem('pub-' + username);
+    }
+    axios.get(`${API_URL}/auth/certif/`+ username, {
+      headers: { Authorization: this.state.token }
+    })
+        .then(res => {
+          // i got the certif
+          const pem = res.data.certificate;
+          const certif = forge.pki.certificateFromPem(pem);
+          const publicKey = certif.publicKey;
+          const pubKeyPem = forge.pki.publicKeyToPem(publicKey);
+          localStorage.setItem('pub-' + username, pubKeyPem);
+          return pubKeyPem;
+        })
+        .catch(err => {
+          console.log(err);
+        });
+  }
+
   // Checks if the user is typing, if they are, it sets the state of isTyping to true,
   // then it calls the startCheckTyping function
   // Tells server sockets, that someone is typing.
   sendTyping = () => {
     this.lastUpdateTime = Date.now();
-
     if (!this.state.isTyping) {
       this.setState({
         isTyping: true
@@ -54,6 +80,8 @@ export default class PrivateMessaging extends Component{
 
   componentDidMount() {
     this.scrollDown();
+    const {currentPrivateRecipient} = this.props;
+    console.log(this.getPublicKey(currentPrivateRecipient.username));
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -63,6 +91,12 @@ export default class PrivateMessaging extends Component{
   // If there are active intervals running, we clear them on dismount
   componentWillUnmount() {
     this.stopCheckTyping();
+  }
+
+  decrypt(message) {
+    console.log(message);
+    const myKey = forge.pki.privateKeyFromPem(localStorage.getItem('priKey'));
+    return myKey.decrypt(message);
   }
 
   render() {
@@ -90,7 +124,8 @@ export default class PrivateMessaging extends Component{
                             <p className="speech--bubble--date">{Moment(message.createdAt).fromNow()}</p>
                           </div>
                           <div className="speech--bubble">
-                            <p>{message.body}</p>
+                            {/*<p>{message.body}</p>*/}
+                            <p>{(username === message.author[0].item.username) ? this.decrypt(message.encryptedAuthorMessage): this.decrypt(message.encryptedRecipientMessage)}</p>
                           </div>
                         </li>
                       )
@@ -113,7 +148,8 @@ export default class PrivateMessaging extends Component{
                           <p className="speech--bubble--date">{Moment(message.createdAt).fromNow()}</p>
                         </div>
                         <div className="speech--bubble">
-                          <p>{message.body}</p>
+                          {/*<p>{message.body}</p>*/}
+                          <p>{(username === message.author[0].item.username) ? this.decrypt(message.encryptedAuthorMessage): this.decrypt(message.encryptedRecipientMessage)}</p>
                         </div>
                       </li>
                     )
