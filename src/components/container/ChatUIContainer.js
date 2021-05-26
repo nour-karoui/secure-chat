@@ -10,7 +10,7 @@ import ChatSelector from '../ChatSelector';
 import io from 'socket.io-client';
 import Moment from 'moment';
 import PrivateMessagingContainer from './PrivateMessageContainer';
-
+var forge = require('node-forge');
 
 const API_URL = 'http://localhost:3000/api';
 const SOCKET_URL = "http://localhost:3000";
@@ -161,6 +161,7 @@ class ChatUIContainer extends Component {
     
     try {
       const userData = await axios.post(`${API_URL}/auth/login`, { username, password });
+      localStorage.setItem('certificate', userData.data.certificate);
       cookies.set('token', userData.data.token, { path: "/", maxAge: 7200 });
       cookies.set('user', userData.data.user, { path: "/", maxAge: 7200 });
       cookies.set('usersChannels', userData.data.user.usersChannels, { path: "/", maxAge: 7200 });
@@ -223,12 +224,13 @@ class ChatUIContainer extends Component {
 
   // Takes a username and password, then makes a POST call to our api which returns a token and that user's info
   // Then sets cookies of the given token, user data, and users channels
-  userRegistration = ({ username, password, email, card, name, lastName }) => {
+  userRegistration = ({ username, password, email, card, name, lastName, csr }) => {
     const { cookies } = this.props;
     const currentChannel = this.state.currentChannel;
-    axios.post(`${API_URL}/auth/register`, { username, password, email, card, name, lastName })
+    axios.post(`${API_URL}/auth/register`, { username, password, email, card, name, lastName, csr })
     .then(res => {
-      console.log('register successful')
+      console.log('register successful');
+      localStorage.setItem('certificate', res.data.certificate);
       cookies.set('token', res.data.token, { path: "/", maxAge: 7200 })
       cookies.set('user', res.data.user, { path: "/", maxAge: 7200 })
       cookies.set('usersChannels', res.data.user.usersChannels, { path: "/", maxAge: 7200 })
@@ -533,7 +535,6 @@ class ChatUIContainer extends Component {
   // Depending on the parameter, different pages are shown
   // The Login, Register or the Guest sign up page. 
   displayForms = (method) => {
-    console.log('hellooo');
     if (method === "login") {
       this.setState({
         loginError: [],

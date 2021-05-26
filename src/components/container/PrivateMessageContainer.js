@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import PrivateMessaging from '../PrivateMessaging';
 import axios from 'axios';
 import io from 'socket.io-client';
+var forge = require('node-forge');
 
 const SOCKET_URL = "http://localhost:3000";
 const socket = io(SOCKET_URL);
@@ -41,14 +42,18 @@ export default class PrivateMessagingContainer extends Component {
   sendPrivateMessage = () => {
     const privateMessageInput = this.state.privateMessageInput;
     const recipientId = this.props.currentPrivateRecipient._id;
-
-    axios.post(`${API_URL}/chat/reply`, { privateMessageInput, recipientId }, {
+    const recipientUsername = this.props.currentPrivateRecipient.username;
+    const myKey = forge.pki.publicKeyFromPem(localStorage.getItem('pubKey'));
+    const recipientKey = forge.pki.publicKeyFromPem(localStorage.getItem('pub-' + recipientUsername));
+    const encryptedAuthorMessage = myKey.encrypt(privateMessageInput);
+    const encryptedRecipientMessage = recipientKey.encrypt(privateMessageInput);
+    axios.post(`${API_URL}/chat/reply`, { encryptedRecipientMessage, encryptedAuthorMessage, privateMessageInput, recipientId }, {
       headers: { Authorization: this.props.token }
     })
     .then(res => {
-      console.log(res);
       const socketMsg = {
-        body: privateMessageInput,
+        encryptedRecipientMessage: res.data.reply.encryptedRecipientMessage,
+        encryptedAuthorMessage: res.data.reply.encryptedAuthorMessage,
         conversationId: res.data.reply.conversationId,
         author:[{
           item:{
@@ -56,7 +61,6 @@ export default class PrivateMessagingContainer extends Component {
           }
         }]
       }
-      console.log(socketMsg);
       socket.emit('new privateMessage', socketMsg);
 
       this.setState({
