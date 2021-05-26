@@ -81,7 +81,6 @@ export default class PrivateMessaging extends Component{
   componentDidMount() {
     this.scrollDown();
     const {currentPrivateRecipient} = this.props;
-    console.log(this.getPublicKey(currentPrivateRecipient.username));
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -94,7 +93,6 @@ export default class PrivateMessaging extends Component{
   }
 
   decrypt(message) {
-    console.log(message);
     const myKey = forge.pki.privateKeyFromPem(localStorage.getItem('priKey'));
     return myKey.decrypt(message);
   }
@@ -112,7 +110,6 @@ export default class PrivateMessaging extends Component{
             (privateMessageLog.length)
               ? <ul>
                     {privateMessageLog.map((message, index) => {
-                      console.log(message);
                       return (
                         <li className={(username !== message.author[0].item.username) ? "chat--received" : null} key={`chatMsgId-${index}`}>
                           <div className="speech--bubble--author">

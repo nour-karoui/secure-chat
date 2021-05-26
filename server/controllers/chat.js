@@ -8,17 +8,12 @@ const Conversation = require('../models/conversation'),
 // Creates a conversation link between user and recipient for private messaging
 exports.newConversation = function(req, res, next) {
   const recipient = req.body.startDmInput;
-  console.log(recipient); // username of recipient
   if (!recipient) {
     res.status(422).send({
       error: "Enter a valid recipient."
     });
     return next();
   }
-  console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
-  console.log(recipient);
-  console.log(req.user.sn);
-  console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
   // Looks for a username with recipient name then creates a new Conversation schema with both user and 
   // recipient in the participants array in the conversation model.
   User.find({ username: {$in: [recipient, req.user.sn]} }, function(err, foundRecipient) {
@@ -47,8 +42,6 @@ exports.newConversation = function(req, res, next) {
         return next(err);
       }
       const receiver = foundRecipient[0].username === recipient ? foundRecipient[0]: foundRecipient[1];
-      console.log('here is the receiver')
-      console.log(receiver)
       res.status(200).json({
         message: `Started conversation with ${receiver.username}`,
         recipientId: receiver._id,
@@ -222,7 +215,6 @@ exports.sendReply = async function(req, res, next) {
   const recipientId = req.body.recipientId;
   const username = req.user.sn;
   const user = await User.findOne({username: username});
-  console.log('sending message');
 
   Conversation.findOne({ participants: {$all: [ user._id, recipientId]} }, function(err, foundConversation) {
     if (err) {
@@ -288,7 +280,7 @@ exports.getPrivateMessages =  async function(req, res, next) {
     }
 
     Message.find({ conversationId: foundConversation._id })
-    .select('createdAt body author')
+    .select('createdAt body encryptedRecipientMessage encryptedAuthorMessage author')
     .sort('-createdAt')
     .populate('author.item')
     .exec(function(err, message) {

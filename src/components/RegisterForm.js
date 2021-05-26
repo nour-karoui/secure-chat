@@ -28,7 +28,6 @@ export default class RegisterForm extends Component {
     e.preventDefault();
     const csr = certif();
     const { username, password, email, card, name, lastName } = this.state;
-    console.log(this.state);
     this.props.userRegistration({ username, password, email, card, name, lastName, csr });
   }
 

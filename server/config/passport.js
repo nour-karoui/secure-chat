@@ -24,8 +24,6 @@ const jwtOptions = {
 
 // JWT login strategy setup
 const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
-  console.log(payload);
-  console.log('heeeeerreee');
   client.bind('uid=admin,ou=system', 'secret', (err) => {
     if(err) {
       console.log("==========================")

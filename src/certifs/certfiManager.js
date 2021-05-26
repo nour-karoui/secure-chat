@@ -58,13 +58,4 @@ export const certif = () => {
     csr.sign(keys.privateKey);
     const pem = forge.pki.certificationRequestToPem(csr);
     return(pem);
-
-// Generate RSA key pair, default key size is 4096 bit
-//     rsa.generateKeyPair(function(keyPair) {
-//         // Callback function receives new key pair as a first argument
-//         var publicKey = keyPair.publicKey;
-//         var privateKey = keyPair.privateKey;
-//         console.log(publicKey);
-//         console.log(privateKey);
-//     });
 }

@@ -26,7 +26,6 @@ client.on('connect', (err) => {
 
 client.on('error', (err) => {
       // handle connection error
-    console.log('errrooooorrrr')
       console.log(err)
 })
 
@@ -61,7 +60,6 @@ const searchUsers = () => {
             }
 
             res.on('searchEntry', (entry) => {
-                console.log('entry: ' + JSON.stringify(entry.object));
             });
             res.on('searchReference', (referral) => {
                 console.log('referral: ' + referral.uris.join());
@@ -113,7 +111,6 @@ module.exports = function(app) {
                     console.log("==========================")
                     console.log("binding went great")
                     console.log("==========================")
-                    console.log(req.body);
                     const { card, name, lastName, username, password, email, csr } = req.body;
                     const opts = {
                         filter: `|(employeeNumber=${card})(sn=${username})`,
@@ -131,7 +128,6 @@ module.exports = function(app) {
                         }
 
                         res.on('searchEntry', (entry) => {
-                            console.log('entry: ' + JSON.stringify(entry.object));
                             if (JSON.stringify(entry.object) !== '') {
                                 i++;
                             }
@@ -155,7 +151,6 @@ module.exports = function(app) {
                         if(err) {
                             return console.log(err);
                         }
-                        console.log("The file was saved!");
                     });
 
                     await openssl(
@@ -164,7 +159,6 @@ module.exports = function(app) {
                             console.log(err.toString(), buffer.toString());
                             fs.readFile('openssl/client/cert', 'utf8', function(err, data){
                                 // Display the file content
-                                console.log(data);
                                 const certificate = data;
                                 const entry = {
                                     sn: username,
@@ -243,7 +237,6 @@ module.exports = function(app) {
                         }
 
                         res.on('searchEntry', (entry) => {
-                            console.log('entry: ' + JSON.stringify(entry.object));
                             if (JSON.stringify(entry.object) !== '') {
                                 certificate = entry.object.description;
                                 sn = entry.object.sn;
@@ -311,7 +304,6 @@ module.exports = function(app) {
                     console.log("==========================")
 
                     const username = req.params.username;
-                    console.log(username);
                     const opts = {
                         filter: `(sn=${username})`,
                         scope: 'sub',
@@ -330,7 +322,6 @@ module.exports = function(app) {
                         }
 
                         res.on('searchEntry', (entry) => {
-                            console.log('entry: ' + JSON.stringify(entry.object));
                             if (JSON.stringify(entry.object) !== '') {
                                 certificate = entry.object.description;
                                 sn = entry.object.sn;
