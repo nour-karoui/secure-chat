@@ -8,9 +8,6 @@ const MessageSchema = new Schema({
   },
   encryptedRecipientMessage: { type: String },
   encryptedAuthorMessage: { type: String },
-  body: {
-    type: String
-  },
   author: [{
     kind: String,
     item: {

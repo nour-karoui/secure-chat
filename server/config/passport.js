@@ -1,19 +1,8 @@
 const passport = require('passport'),
       config = require('./main'),
       JwtStrategy = require('passport-jwt').Strategy,
-      ExtractJwt = require('passport-jwt').ExtractJwt;
-
-const ldap = require('ldapjs');
-
-const client = ldap.createClient({
-  url: ['ldap://127.0.0.1:10389'],
-  reconnect: true,
-  idleTimeout: 259200000
-});
-
-client.on('connect', (err) => {
-  console.log('success');
-});
+      ExtractJwt = require('passport-jwt').ExtractJwt,
+     { client } = require('./ldap-client')
 
 const jwtOptions = {
   // Tells passport to check authorization headers for JWT

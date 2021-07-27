@@ -38,10 +38,10 @@ export default class RegisterForm extends Component {
           <form onSubmit={this.handleSubmit}>
             <input onChange={this.handleChange} name="username" type="text" label="Username" placeholder="&#xf2c0; Enter a Username"/>
             <input onChange={this.handleChange} name="password" type="password" label="Password" placeholder="&#xf13e; Enter a password"/>
-            <input onChange={this.handleChange} name="email" type="email" label="Email" placeholder="Enter your email"/>
-            <input onChange={this.handleChange} name="card" type="card" label="Card" placeholder="Enter your card number"/>
-            <input onChange={this.handleChange} name="name" type="name" label="Password" placeholder="Enter your name"/>
-            <input onChange={this.handleChange} name="lastName" type="lastName" label="Last Name" placeholder="Enter your last name"/>
+            <input onChange={this.handleChange} name="email" type="email" label="Email" placeholder="&#xf2b6; Enter your email"/>
+            <input onChange={this.handleChange} name="card" type="card" label="Card" placeholder="&#xf2bb; Enter your card number"/>
+            <input onChange={this.handleChange} name="name" type="name" label="Password" placeholder="&#xf007; Enter your name"/>
+            <input onChange={this.handleChange} name="lastName" type="lastName" label="Last Name" placeholder="&#xf007; Enter your last name"/>
             {
               (this.props.registrationError.length)
                 ? <Alert
