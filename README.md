@@ -28,7 +28,6 @@ Features:
   - Cookies for saved session on browser refresh
   - Private Messaging with other users, all messages are end to end encrypted using asymmetric encryption <br/>
 
-<hr />
 
 ## Installing
 ```
@@ -49,7 +48,6 @@ After running the apache directory studio, make sure to link it to our project i
  
  **2. you generate a self signed certificate that'll allow you to verify the identity of the users and generate their certificates, *(our self signed cetificate is saved in server/openssl/CA)*.**
 
-<hr />
 
 ## How Does it work
 
@@ -60,7 +58,6 @@ After running the apache directory studio, make sure to link it to our project i
 Each user saves the other's certificate in their localstorage to be able to encrypt messages and send them.
 4. The *ENCRYPTED* messages are saved in Monge DB.
 
-<hr />
 
 ## Author
 
