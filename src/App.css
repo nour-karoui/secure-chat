@@ -55,7 +55,6 @@ button {
   flex-direction: column;
   margin: 2rem;
   min-height: 80vh;
-  height: 100%;
   position: relative;
 }
 
@@ -125,7 +124,7 @@ button {
   padding-right: 1.5rem;
   border-bottom-left-radius: 18px;
   border-bottom-right-radius: 18px;
-  height: calc(100% - 4.5rem);
+  height: 120vh;
 }
 
 .chatapp__form--modal form {

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Moment from 'moment';
 import axios from "axios";
-import { getPublicKey } from "./container/ChatUIContainer";
 var forge = require('node-forge');
 
 const API_URL = 'http://localhost:3000/api';
@@ -81,6 +80,7 @@ export default class PrivateMessaging extends Component{
   componentDidMount() {
     this.scrollDown();
     const {currentPrivateRecipient} = this.props;
+    this.getPublicKey(currentPrivateRecipient.username);
   }
 
   componentDidUpdate(prevProps, prevState) {

@@ -1,7 +1,6 @@
 var forge = require('node-forge');
 
 export const certif = () => {
-    //var rsa = new RSA();
     // generate a key pair
     const keys = forge.pki.rsa.generateKeyPair(1024);
     const priKey = forge.pki.privateKeyToPem(keys.privateKey);

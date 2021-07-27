@@ -8,7 +8,6 @@ import Navigation from '../Navigation';
 import ChatBox from '../ChatBox';
 import ChatSelector from '../ChatSelector';
 import io from 'socket.io-client';
-import Moment from 'moment';
 import PrivateMessagingContainer from './PrivateMessageContainer';
 var forge = require('node-forge');
 
@@ -56,7 +55,7 @@ class ChatUIContainer extends Component {
     this.initSocket();
 
     // Get current channels messages
-    this.getChannelConversations();
+    // this.getChannelConversations();
   }
 
   // Sets up socket listeners to listen for when to refresh messages, when a new user has joined,
@@ -300,21 +299,21 @@ class ChatUIContainer extends Component {
 
   // GET calls to backend API with the given current channel name.
   // responds back with all the conversations in that given channel
-  getChannelConversations = () => {
-    axios.get(`${API_URL}/chat/channel/${this.state.currentChannel}`)
-    .then(res => {
-      const currentChannel = this.state.currentChannel;
-  
-      socket.emit('enter channel', currentChannel, this.setUsername());
-
-      this.setState({
-        channelConversations: res.data.channelMessages
-      });
-    })
-    .catch(error => {
-      console.log(error)
-    })
-  }
+  // getChannelConversations = () => {
+  //   axios.get(`${API_URL}/chat/channel/${this.state.currentChannel}`)
+  //   .then(res => {
+  //     const currentChannel = this.state.currentChannel;
+  //
+  //     socket.emit('enter channel', currentChannel, this.setUsername());
+  //
+  //     this.setState({
+  //       channelConversations: res.data.channelMessages
+  //     });
+  //   })
+  //   .catch(error => {
+  //     console.log(error)
+  //   })
+  // }
 
   // GET call to the backend api with the token given from login in the header.
   // this returns a list of all the user's active conversations
@@ -339,31 +338,31 @@ class ChatUIContainer extends Component {
   // On successful post call, the message is saved to mongodb
   // This then emits to the socket listeners on the server that a message was sent,
   // which returns a refresh message message for us to get updated messages from the mongodb.
-  sendMessage = (composedMessage, recipient) => {
-    const socket = this.state.socket;
-    const currentChannel = this.state.currentChannel;
-
-    axios.post(`${API_URL}/chat/postchannel/${this.state.currentChannel}`, { composedMessage }, {
-      headers: { Authorization: this.state.token }
-    })
-    .then(res => {
-      const socketMsg = {
-        composedMessage,
-        channel: currentChannel,
-        author: this.state.guestUsername || this.state.username,
-        date: Moment().format()
-      }
-      socket.emit('new message', socketMsg)
-
-      this.setState({
-        composedMessage: ""
-      })
-    })
-    .catch(err => {
-      console.log(err)
-    })
-  
-  }
+  // sendMessage = (composedMessage, recipient) => {
+  //   const socket = this.state.socket;
+  //   const currentChannel = this.state.currentChannel;
+  //
+  //   axios.post(`${API_URL}/chat/postchannel/${this.state.currentChannel}`, { composedMessage }, {
+  //     headers: { Authorization: this.state.token }
+  //   })
+  //   .then(res => {
+  //     const socketMsg = {
+  //       composedMessage,
+  //       channel: currentChannel,
+  //       author: this.state.guestUsername || this.state.username,
+  //       date: Moment().format()
+  //     }
+  //     socket.emit('new message', socketMsg)
+  //
+  //     this.setState({
+  //       composedMessage: ""
+  //     })
+  //   })
+  //   .catch(err => {
+  //     console.log(err)
+  //   })
+  //
+  // }
 
   handleChange = (event) => {
     this.setState({
