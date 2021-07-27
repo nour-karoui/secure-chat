@@ -33,6 +33,11 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/server/config/ldap-client.js">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/server/config/ldap.js">
           <value>
             <set />
@@ -99,6 +104,21 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/server/models/user.js">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/openssl/CA/myCA.crt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/openssl/CA/myCA.key">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/server/openssl/CA/myCA.srl">
           <value>
             <set />
           </value>

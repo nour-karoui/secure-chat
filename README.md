@@ -28,8 +28,9 @@ Features:
   - Cookies for saved session on browser refresh
   - Private Messaging with other users, all messages are end to end encrypted using asymmetric encryption <br/>
 
+<hr />
 
-### Installing
+## Installing
 ```
 git clone https://github.com/nour-karoui/secure-chat .
 npm install
@@ -42,14 +43,15 @@ Go to http://localhost:3001/
 
 ***PS***: Before Starting the app, make sure:
 
- **1- you have apache directory studio installed and running.
+ **1. you have apache directory studio installed and running.
 You can download it from [HERE](https://directory.apache.org/studio/downloads.html).
 After running the apache directory studio, make sure to link it to our project in the file *server/config/ldap-client*.**
  
- **2- you generate a self signed certificate that'll allow you to verify the identity of the users and generate their certificates, *(our self signed cetificate is saved in server/openssl/CA)*.**
+ **2. you generate a self signed certificate that'll allow you to verify the identity of the users and generate their certificates, *(our self signed cetificate is saved in server/openssl/CA)*.**
 
+<hr />
 
-### How Does it work
+## How Does it work
 
 1. When creating the account, the user generates a public and private key, and saves them in localstorage. the user sends the public key to the server alongside with his credentials.
 *NEVER SHARE THE PRIVATE KEY WITH ANYONE*.
@@ -57,6 +59,8 @@ After running the apache directory studio, make sure to link it to our project i
 3. Each time userA wants to chat with userB, the server sends userB's certificate to userA and vice versa.
 Each user saves the other's certificate in their localstorage to be able to encrypt messages and send them.
 4. The *ENCRYPTED* messages are saved in Monge DB.
+
+<hr />
 
 ## Author
 
