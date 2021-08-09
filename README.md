@@ -68,7 +68,7 @@ Each user saves the other's certificate in their localstorage to be able to encr
 
 ## 🤝 Contributing
 
-Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/nour-karoui/Inbox-Ethereum/issues). You can also take a look at the [contributing guide](https://github.com/nour-karoui/Inbox-Ethereum/blob/master/CONTRIBUTING.md).
+Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/nour-karoui/secure-chat/issues)
 
 ## Show your support
 
